@@ -1602,27 +1602,27 @@ echo "Make sure your computer and device is connected to the same Wi-Fi network.
 read -p "Insert the IP of your device, go to Settings/Wi-Fi/Wi-Fi network/Information/IP Address: " ip_address
 read -p "Enter the SSH Password of your device: " sshpwd
 mkdir -p activation_records/$ECID
-sudo ./bin/sshpass -p "$sshpwd" scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $CONNECT_AS@"$ip_address":/private/var/containers/Data/System/*/Library/activation_records/activation_record.plist activation_records/$ECID/activation_record.plist
+./bin/sshpass -p "$sshpwd" scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $CONNECT_AS@"$ip_address":/private/var/containers/Data/System/*/Library/activation_records/activation_record.plist activation_records/$ECID/activation_record.plist
 if [[ ! -f "activation_records/$ECID/activation_record.plist" ]]; then
     echo "activation_record.plist did not save correctly. Cannot continue."
     exit 1
 fi
-sudo ./bin/sshpass -p "$sshpwd" scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $CONNECT_AS@"$ip_address":/private/var/mobile/Library/FairPlay/iTunes_Control/iTunes/IC-Info.sisv activation_records/$ECID/IC-Info.sisv
+./bin/sshpass -p "$sshpwd" scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $CONNECT_AS@"$ip_address":/private/var/mobile/Library/FairPlay/iTunes_Control/iTunes/IC-Info.sisv activation_records/$ECID/IC-Info.sisv
 if [[ ! -f "activation_records/$ECID/IC-Info.sisv" ]]; then
     echo "IC-Info.sisv did not save correctly. Cannot continue."
     exit 1
 fi
 if [[ $DEVICE_VERSION == 15.* ]]; then
     # re-set permissions for com.apple.commcenter.device_specific_nobackup.plist and move to different dir, so you can download it when connected via mobile
-    sudo ./bin/sshpass -p "$sshpwd" ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $CONNECT_AS@"$ip_address" "echo "$sshpwd" | sudo -S cp /private/var/wireless/Library/Preferences/com.apple.commcenter.device_specific_nobackup.plist /private/var/containers/Data/System/"
-    sudo ./bin/sshpass -p "$sshpwd" ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $CONNECT_AS@"$ip_address" "echo "$sshpwd" | sudo -S chown mobile:mobile /private/var/containers/Data/System/com.apple.commcenter.device_specific_nobackup.plist"
-    sudo ./bin/sshpass -p "$sshpwd" scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $CONNECT_AS@"$ip_address":/private/var/containers/Data/System/com.apple.commcenter.device_specific_nobackup.plist activation_records/$ECID/com.apple.commcenter.device_specific_nobackup.plist
+    ./bin/sshpass -p "$sshpwd" ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $CONNECT_AS@"$ip_address" "echo "$sshpwd" | sudo -S cp /private/var/wireless/Library/Preferences/com.apple.commcenter.device_specific_nobackup.plist /private/var/containers/Data/System/"
+    ./bin/sshpass -p "$sshpwd" ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $CONNECT_AS@"$ip_address" "echo "$sshpwd" | sudo -S chown mobile:mobile /private/var/containers/Data/System/com.apple.commcenter.device_specific_nobackup.plist"
+    ./bin/sshpass -p "$sshpwd" scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $CONNECT_AS@"$ip_address":/private/var/containers/Data/System/com.apple.commcenter.device_specific_nobackup.plist activation_records/$ECID/com.apple.commcenter.device_specific_nobackup.plist
 else
-    sudo ./bin/sshpass -p "$sshpwd" scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $CONNECT_AS@"$ip_address":/private/var/wireless/Library/Preferences/com.apple.commcenter.device_specific_nobackup.plist activation_records/$ECID/com.apple.commcenter.device_specific_nobackup.plist
+    ./bin/sshpass -p "$sshpwd" scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $CONNECT_AS@"$ip_address":/private/var/wireless/Library/Preferences/com.apple.commcenter.device_specific_nobackup.plist activation_records/$ECID/com.apple.commcenter.device_specific_nobackup.plist
 fi
 if [[ ! -f "activation_records/$ECID/com.apple.commcenter.device_specific_nobackup.plist" ]]; then 
     echo "com.apple.commcenter.device_specific_nobackup.plist did not save correctly. Cannot continue."
-    sudo rm -rf activation_records/$ECID
+    rm -rf activation_records/$ECID
     exit 1
 fi
 echo "Activation records are now saved"
@@ -1671,7 +1671,7 @@ if [[ $misc_utils_options == 1 ]]; then
     echo "WARNING: All of your boot files, and other things will be deleted (if any files are in the surrealra1n directory, they will be erased), and surrealra1n will be fresh installed."
     read -p "Are you sure you want to reinstall surrealra1n? (y/N): " surrealra1n_reinstall
     if [[ $surrealra1n_reinstall == Y || $surrealra1n_reinstall == y ]]; then
-        sudo rm -rf ./*
+        rm -rf ./*
         git clone --branch development https://github.com/pwnerblu/surrealra1n repo --recursive
         if [[ ! -d repo ]]; then
             echo "Failed to clone repository. You will need to fetch surrealra1n from releases on GitHub"
@@ -1693,9 +1693,9 @@ elif [[ $misc_utils_options == 2 ]]; then
     echo "This may be useful if you want more disk space."
     read -p "Are you sure you want to clear these files? (y/N): " clear_files    
     if [[ $clear_files == y || $clear_files == Y ]]; then
-        sudo rm -rf "boot"
-        sudo rm -rf "restorefiles"
-        sudo rm -rf "noseprestore"
+        rm -rf "boot"
+        rm -rf "restorefiles"
+        rm -rf "noseprestore"
     else
         echo "Clearing boot files/restore files has been canceled"
         misc_utils
@@ -1901,7 +1901,7 @@ if [[ "$CURRENT_MAJOR" -gt "$MAIN_MAJOR" ]] || \
     echo ""
     read -p "Are you sure you want to switch to stable? (y/N): " switch_confirm
     if [[ $switch_confirm == Y || $switch_confirm == y ]]; then
-        sudo rm -rf ./*
+        rm -rf ./*
         git clone --branch main https://github.com/pwnerblu/surrealra1n repo --recursive
         if [[ ! -d repo ]]; then
             echo "Failed to clone repository."
@@ -2065,8 +2065,8 @@ sep_path="tmp/sep-firmware.j42d.RELEASE.im4p"
 manifest_path="tmp/BuildManifest-SEP.plist"
 sep_ipsw="https://secure-appldnld.apple.com/tvos10.2.2/091-23452-20170720-5D53229C-6A56-11E7-8577-8B2C4A4DD6D5/AppleTV5,3_10.2.2_14W756_Restore.ipsw"
 curl -L -o tmp/BuildManifest-SEP.plist https://github.com/pwnerblu/cursed-sep-resources/raw/refs/heads/main/BuildManifest-$IDENTIFIER.plist
-sudo ./bin/pzb -g Firmware/all_flash/sep-firmware.j42d.RELEASE.im4p $sep_ipsw
-sudo mv -v sep-firmware.j42d.RELEASE.im4p $sep_path
+./bin/pzb -g Firmware/all_flash/sep-firmware.j42d.RELEASE.im4p $sep_ipsw
+mv -v sep-firmware.j42d.RELEASE.im4p $sep_path
 
 }
 
@@ -2077,8 +2077,8 @@ sep_path="tmp/sep-firmware.n61.RELEASE.im4p"
 manifest_path="tmp/BuildManifest-SEP.plist"
 sep_ipsw="https://updates.cdn-apple.com/2026WinterFCS/fullrestores/047-28352/B80B4A86-C206-4C4F-8D35-65579694AEE9/iPhone_4.7_12.5.8_16H88_Restore.ipsw"
 curl -L -o tmp/BuildManifest-SEP.plist https://github.com/pwnerblu/cursed-sep-resources/raw/refs/heads/main/BuildManifest-$IDENTIFIER-12.5.8.plist
-sudo ./bin/pzb -g Firmware/all_flash/sep-firmware.n61.RELEASE.im4p $sep_ipsw
-sudo mv -v sep-firmware.n61.RELEASE.im4p $sep_path
+./bin/pzb -g Firmware/all_flash/sep-firmware.n61.RELEASE.im4p $sep_ipsw
+mv -v sep-firmware.n61.RELEASE.im4p $sep_path
 
 }
 
@@ -2094,14 +2094,14 @@ elif [[ $IDENTIFIER == iPad4* ]]; then
     sep_ipsw="http://appldnld.apple.com/ios10.3.3/091-23378-20170719-CA983C78-6977-11E7-8922-3D9100BA0AE3/iPad_64bit_10.3.3_14G60_Restore.ipsw"
 fi
 curl -L -o tmp/BuildManifest-SEP.plist https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/resources/manifest/BuildManifest_${IDENTIFIER}_10.3.3.plist
-sudo ./bin/pzb -g Firmware/all_flash/$sep_name $sep_ipsw
-sudo mv -v $sep_name $sep_path
+./bin/pzb -g Firmware/all_flash/$sep_name $sep_ipsw
+mv -v $sep_name $sep_path
 
 }
 
 prepatch_ibssibec_fr(){
 
-sudo mkdir -p /tmp/futurerestore
+mkdir -p /tmp/futurerestore
 mkdir -p work
 ./bin/img4tool -s "$SHSH_PATH" -e -m "$IDENTIFIER-im4m"
 im4m="$IDENTIFIER-im4m"
@@ -2118,7 +2118,7 @@ if [[ $VERSION == 10.3* || $VERSION == 11.* || $VERSION == 12.* || $VERSION == 1
     unzip -j "$IPSW_PATH" "Firmware/dfu/$IBSS" -d work
     unzip -j "$IPSW_PATH" "Firmware/dfu/$IBEC" -d work
     if [[ $IDENTIFIER == iPhone10* ]] && [[ $VERSION == 14.0 ]]; then # just for 14.0 beta 4 restore
-        ( cd work && sudo ../bin/pzb -g Firmware/dfu/$IBSS $ipsw_url && sudo ../bin/pzb -g Firmware/dfu/$IBEC $ipsw_url )
+        ( cd work && ../bin/pzb -g Firmware/dfu/$IBSS $ipsw_url && ../bin/pzb -g Firmware/dfu/$IBEC $ipsw_url )
     fi
     ./bin/img4 -i work/$IBSS -o work/iBSS.raw -k $IBSS_KEY
     ./bin/img4 -i work/$IBEC -o work/iBEC.raw -k $IBEC_KEY
@@ -2127,8 +2127,8 @@ if [[ $VERSION == 10.3* || $VERSION == 11.* || $VERSION == 12.* || $VERSION == 1
         ./bin/iBoot64Patcher work/iBSS.raw work/iBSS.patched -n
     fi
     ./bin/iBoot64Patcher work/iBEC.raw work/iBEC.patched -b "rd=md0 debug=0x2014e -v wdt=-1 nand-enable-reformat=1 -restore amfi=0xff cs_enforcement_disable=1" -n
-    sudo ./bin/img4 -i work/iBSS.patched -o /tmp/futurerestore/ibss.$BOARDID.$BUILD.patched.img4 -A -T ibss -M $im4m
-    sudo ./bin/img4 -i work/iBEC.patched -o /tmp/futurerestore/ibec.$BOARDID.$BUILD.patched.img4 -A -T ibec -M $im4m
+    ./bin/img4 -i work/iBSS.patched -o /tmp/futurerestore/ibss.$BOARDID.$BUILD.patched.img4 -A -T ibss -M $im4m
+    ./bin/img4 -i work/iBEC.patched -o /tmp/futurerestore/ibec.$BOARDID.$BUILD.patched.img4 -A -T ibec -M $im4m
 else
     # 10.3 iBSS/iBEC workaround
     IBSS_KEY=$(grep "ibss-10.3:" "$KEY_FILE" | cut -d':' -f2 | xargs)
@@ -2146,16 +2146,16 @@ else
     elif [[ $IDENTIFIER == iPod7* ]]; then
         ipsw_url="http://appldnld.apple.com/ios10.3/091-02958-20170327-75869E66-0D86-11E7-BF4D-88CE122AC769/iPodtouch_10.3_14E277_Restore.ipsw"
     fi
-    sudo ./bin/pzb -g Firmware/dfu/$IBSS $ipsw_url
-    sudo ./bin/pzb -g Firmware/dfu/$IBEC $ipsw_url
-    sudo mv -v $IBSS work/
-    sudo mv -v $IBEC work/
+    ./bin/pzb -g Firmware/dfu/$IBSS $ipsw_url
+    ./bin/pzb -g Firmware/dfu/$IBEC $ipsw_url
+    mv -v $IBSS work/
+    mv -v $IBEC work/
     ./bin/img4 -i work/$IBSS -o work/iBSS.raw -k $IBSS_KEY
     ./bin/img4 -i work/$IBEC -o work/iBEC.raw -k $IBEC_KEY
     ./bin/iBoot64Patcher work/iBSS.raw work/iBSS.patched
     ./bin/iBoot64Patcher work/iBEC.raw work/iBEC.patched -b "rd=md0 debug=0x2014e -v wdt=-1 nand-enable-reformat=1 -restore amfi=0xff cs_enforcement_disable=1" -n
-    sudo ./bin/img4 -i work/iBSS.patched -o /tmp/futurerestore/ibss.$BOARDID.$BUILD.patched.img4 -A -T ibss -M $im4m
-    sudo ./bin/img4 -i work/iBEC.patched -o /tmp/futurerestore/ibec.$BOARDID.$BUILD.patched.img4 -A -T ibec -M $im4m
+    ./bin/img4 -i work/iBSS.patched -o /tmp/futurerestore/ibss.$BOARDID.$BUILD.patched.img4 -A -T ibss -M $im4m
+    ./bin/img4 -i work/iBEC.patched -o /tmp/futurerestore/ibec.$BOARDID.$BUILD.patched.img4 -A -T ibec -M $im4m
 fi
 
 }
@@ -2226,7 +2226,7 @@ if [[ $VERSION == 8.* ]]; then
     prepatch_ibssibec_fr
     while true; do
         set +e
-        sudo FUTURERESTORE_I_SOLEMNLY_SWEAR_THAT_I_AM_UP_TO_NO_GOOD=1 \
+        env FUTURERESTORE_I_SOLEMNLY_SWEAR_THAT_I_AM_UP_TO_NO_GOOD=1 \
             ./futurerestore/futurerestore -t $SHSH_PATH \
             --sep $sep_path --sep-manifest $manifest_path \
             --custom-latest $LATEST_VERSION --use-pwndfu \
@@ -2263,7 +2263,7 @@ if [[ $IDENTIFIER == iPhone7* || $IDENTIFIER == iPad5* || $IDENTIFIER == iPod7* 
         prepatch_ibssibec_fr
         while true; do
             set +e
-            sudo FUTURERESTORE_I_SOLEMNLY_SWEAR_THAT_I_AM_UP_TO_NO_GOOD=1 \
+            env FUTURERESTORE_I_SOLEMNLY_SWEAR_THAT_I_AM_UP_TO_NO_GOOD=1 \
                 ./futurerestore/futurerestore -t $SHSH_PATH --use-pwndfu \
                 --sep $sep_path --sep-manifest $manifest_path \
                 --custom-latest $LATEST_VERSION $use_skip_blob \
@@ -2288,7 +2288,7 @@ if [[ $IDENTIFIER == iPhone7* || $IDENTIFIER == iPad5* || $IDENTIFIER == iPod7* 
     prepatch_ibssibec_fr
     while true; do
         set +e
-        sudo FUTURERESTORE_I_SOLEMNLY_SWEAR_THAT_I_AM_UP_TO_NO_GOOD=1 \
+        env FUTURERESTORE_I_SOLEMNLY_SWEAR_THAT_I_AM_UP_TO_NO_GOOD=1 \
             ./futurerestore/futurerestore -t $SHSH_PATH --use-pwndfu \
             --sep $sep_path --sep-manifest $manifest_path \
             --custom-latest $LATEST_VERSION $use_skip_blob \
@@ -2307,7 +2307,7 @@ elif [[ $IDENTIFIER == iPad4* || $IDENTIFIER == iPhone6* ]] && [[ $VERSION == 10
     prepatch_ibssibec_fr
     while true; do
         set +e
-        sudo FUTURERESTORE_I_SOLEMNLY_SWEAR_THAT_I_AM_UP_TO_NO_GOOD=1 \
+        env FUTURERESTORE_I_SOLEMNLY_SWEAR_THAT_I_AM_UP_TO_NO_GOOD=1 \
             ./futurerestore/futurerestore -t $SHSH_PATH --use-pwndfu \
             --sep $sep_path --sep-manifest $manifest_path \
             --custom-latest $LATEST_VERSION $use_skip_blob \
@@ -2326,7 +2326,7 @@ elif [[ $IDENTIFIER == iPad5,1 || $IDENTIFIER == iPad5,2 ]] && [[ $VERSION == 11
     prepatch_ibssibec_fr
     while true; do
         set +e
-        sudo FUTURERESTORE_I_SOLEMNLY_SWEAR_THAT_I_AM_UP_TO_NO_GOOD=1 \
+        env FUTURERESTORE_I_SOLEMNLY_SWEAR_THAT_I_AM_UP_TO_NO_GOOD=1 \
             ./futurerestore/futurerestore -t $SHSH_PATH --use-pwndfu \
             --sep $sep_path --sep-manifest $manifest_path \
             --custom-latest $LATEST_VERSION $use_skip_blob \
@@ -2344,7 +2344,7 @@ else
     prepatch_ibssibec_fr
     while true; do
         set +e
-        sudo FUTURERESTORE_I_SOLEMNLY_SWEAR_THAT_I_AM_UP_TO_NO_GOOD=1 \
+        env FUTURERESTORE_I_SOLEMNLY_SWEAR_THAT_I_AM_UP_TO_NO_GOOD=1 \
             ./futurerestore/futurerestore -t $SHSH_PATH --use-pwndfu \
             --latest-sep \
             --custom-latest $LATEST_VERSION $use_skip_blob \
@@ -2440,7 +2440,7 @@ elif [[ $IDENTIFIER == iPhone10,2 || $IDENTIFIER == iPhone10,5 ]]; then
 else
     url_ios16="https://updates.cdn-apple.com/2022FallFCS/fullrestores/012-65931/BD2515B7-7802-4EB4-9377-98E3238EA5A8/iPhone_4.7_P3_16.0_20A362_Restore.ipsw"
 fi
-( cd work && sudo ../bin/pzb -g 098-08863-001.dmg "$url_ios16" && sudo ../bin/pzb -g $KERNEL "$url_ios16" )
+( cd work && ../bin/pzb -g 098-08863-001.dmg "$url_ios16" && ../bin/pzb -g $KERNEL "$url_ios16" )
 restore_ramdisk_dmg=$(find_dmg work smallest)
 ./bin/img4 -i work/$KERNEL -o work/kernel.raw
 ./bin/KPlooshFinder work/kernel.raw work/kernel.patched
@@ -2491,9 +2491,9 @@ if [[ ( $VERSION == 12.* && ( $IDENTIFIER == iPad5,3 || $IDENTIFIER == iPad5,4 )
     mkdir -p work
     ramdisk_ipsw_url="https://updates.cdn-apple.com/2020WinterFCS/fullrestores/041-42831/7341A77D-6526-4C64-8753-D886106F97CD/iPad_64bit_TouchID_13.4_17E255_Restore.ipsw"
     ramdisk_dmg="048-64389-366.dmg"
-    ( cd work && sudo ../bin/pzb -g $ramdisk_dmg $ramdisk_ipsw_url )
-    ( cd work && sudo ../bin/pzb -g $KERNEL $ramdisk_ipsw_url )
-    ( cd work && sudo ../bin/pzb -g Firmware/all_flash/$DEVICETREE $ramdisk_ipsw_url )
+    ( cd work && ../bin/pzb -g $ramdisk_dmg $ramdisk_ipsw_url )
+    ( cd work && ../bin/pzb -g $KERNEL $ramdisk_ipsw_url )
+    ( cd work && ../bin/pzb -g Firmware/all_flash/$DEVICETREE $ramdisk_ipsw_url )
     mv -v work/$KERNEL tmp1/$KERNEL
     mv -v work/$DEVICETREE tmp1/Firmware/all_flash/$DEVICETREE
     restore_ramdisk_dmg="work/048-64389-366.dmg"
@@ -2857,7 +2857,7 @@ elif [[ $IDENTIFIER == iPhone11,6 || $IDENTIFIER == iPad11,3 ]]; then
 elif [[ $IDENTIFIER == iPad11,4 ]]; then
     IDENTITY="3"
 fi
-sudo KERNEL2="$KERNEL2" IDENTITY="$IDENTITY" python3 <<'PY'
+env KERNEL2="$KERNEL2" IDENTITY="$IDENTITY" python3 <<'PY'
 import os
 import plistlib
 
@@ -2872,7 +2872,7 @@ with open("tmp2/BuildManifest.plist", "wb") as f:
     plistlib.dump(plist, f)
 PY
 if [[ $VERSION == 17.* ]]; then
-    sudo plutil -replace BuildIdentities.$IDENTITY.Manifest.RestoreDeviceTree.Info.Path -string "Firmware/all_flash/DeviceTree.im4p" tmp2/BuildManifest.plist
+    plutil -replace BuildIdentities.$IDENTITY.Manifest.RestoreDeviceTree.Info.Path -string "Firmware/all_flash/DeviceTree.im4p" tmp2/BuildManifest.plist
 fi
 if [[ $VERSION == 16.* || $VERSION == 17.0* || $VERSION == 17.1* || $VERSION == 17.2* || $VERSION == 17.3* || $VERSION == 17.4* ]]; then
     cp -v tmp1/Firmware/AOP/$AOP14 tmp2/Firmware/AOP/$AOP
@@ -2992,7 +2992,7 @@ if [[ $dist == 3 || $dist == 4 ]]; then
         ramdisk_ipsw_url="https://updates.cdn-apple.com/2022FallFCS/fullrestores/012-65861/0A0400A0-2174-4D49-91B7-43FC9DE24272/iPhone10,3,iPhone10,6_16.0_20A362_Restore.ipsw"
         ramdisk_dmg="098-08863-001.dmg"
     fi
-    ( cd work && sudo ../bin/pzb -g $ramdisk_dmg $ramdisk_ipsw_url )
+    ( cd work && ../bin/pzb -g $ramdisk_dmg $ramdisk_ipsw_url )
     ./bin/img4 -i work/$ramdisk_dmg -o work/ramdisk2.dmg
     hdiutil attach work/ramdisk2.dmg -mountpoint rdwork2
     cp -v rdwork2/usr/local/bin/restored_external work/restored_external
@@ -3080,7 +3080,7 @@ else
         ramdisk_ipsw_url="https://updates.cdn-apple.com/2022FallFCS/fullrestores/012-65861/0A0400A0-2174-4D49-91B7-43FC9DE24272/iPhone10,3,iPhone10,6_16.0_20A362_Restore.ipsw"
         ramdisk_dmg="098-08863-001.dmg"
     fi
-    ( cd work && sudo ../bin/pzb -g $ramdisk_dmg $ramdisk_ipsw_url )
+    ( cd work && ../bin/pzb -g $ramdisk_dmg $ramdisk_ipsw_url )
     ./bin/img4 -i work/$ramdisk_dmg -o work/ramdisk2.raw
     ramdisk2_fs=$(detect_fs_type work/ramdisk2.raw)
     if [[ $ramdisk2_fs == "APFS" ]]; then
@@ -3171,7 +3171,7 @@ if [[ $VERSION == 14.0 ]] && [[ $BUILD != 18A373 ]] && [[ $IDENTIFIER == iPhone1
     elif [[ $IDENTIFIER == iPad11,1 || $IDENTIFIER == iPad11,2 || $IDENTIFIER == iPad11,3 || $IDENTIFIER == iPad11,4 ]]; then
         ipsw_url="https://updates.cdn-apple.com/2020SummerFCS/fullrestores/001-46551/EFCA25AF-50BE-4712-A9C2-1E760AD99B82/iPad_Spring_2019_14.0_18A373_Restore.ipsw"
     fi
-    ( cd work && sudo ../bin/pzb -g Firmware/dfu/$IBSS $ipsw_url )
+    ( cd work && ../bin/pzb -g Firmware/dfu/$IBSS $ipsw_url )
     ./bin/img4 -i work/$IBSS -o work/iBSS.raw -k $IBSS_KEY
     ./bin/iBoot64Patcher2 work/iBSS.raw boot/$IDENTIFIER/iBSS.patch 
     ./bin/iBoot64Patcher2 work/iBSS.raw work/iBSS.patchboot -b "-v"
@@ -3185,7 +3185,7 @@ elif [[ $VERSION == 14.5* || $VERSION == 14.6* || $VERSION == 14.7* || $VERSION 
     elif [[ $IDENTIFIER == iPad11,1 || $IDENTIFIER == iPad11,2 || $IDENTIFIER == iPad11,3 || $IDENTIFIER == iPad11,4 ]]; then
         ipsw_url="https://updates.cdn-apple.com/2021WinterFCS/fullrestores/071-22329/CF450435-1EDC-4212-A768-D666A1677EC5/iPad_Spring_2019_14.4.2_18D70_Restore.ipsw"
     fi
-    ( cd work && sudo ../bin/pzb -g Firmware/dfu/$IBSS $ipsw_url )
+    ( cd work && ../bin/pzb -g Firmware/dfu/$IBSS $ipsw_url )
     ./bin/img4 -i work/$IBSS -o work/iBSS.raw -k $IBSS_KEY
     ./bin/iBoot64Patcher2 work/iBSS.raw boot/$IDENTIFIER/iBSS.patch 
     ./bin/iBoot64Patcher2 work/iBSS.raw work/iBSS.patchboot -b "-v"
@@ -3330,9 +3330,9 @@ else
     ramdisk_url="https://updates.cdn-apple.com/2020SummerFCS/fullrestores/001-46617/B62CA88B-EB85-4A5A-9440-7E0B90B02006/iPhone10,3,iPhone10,6_14.0_18A373_Restore.ipsw"
 fi
 if [[ $IDENTIFIER == iPhone11* || $IDENTIFIER == iPhone12* ]] && [[ $IDENTIFIER != iPhone12,8 ]]; then
-    sudo ./bin/pzb -g $ramdisk_download_name $ramdisk_url
+    ./bin/pzb -g $ramdisk_download_name $ramdisk_url
     ./bin/img4 -i $ramdisk_download_name -o work/ramdisk2.raw
-    sudo rm -rf $ramdisk_download_name
+    rm -rf $ramdisk_download_name
     ./bin/hfsplus work/ramdisk2.raw extract usr/local/bin/$restored work/restored_external
     ./bin/ipx_restored_patcher work/restored_external work/restored_patch
     ./bin/ldid -e work/restored_external > work/ents.plist
@@ -3450,7 +3450,7 @@ else
     unzip -j "$IPSW_PATH" "Firmware/dfu/$IBEC" -d work
     unzip -j "$IPSW_PATH" "Firmware/all_flash/$DEVICETREE" -d work
     if [[ $IDENTIFIER == iPhone10* ]] && [[ $VERSION == 14.0 ]]; then # just for 14.0 beta 4 restore
-        ( cd work && sudo ../bin/pzb -g Firmware/dfu/$IBSS $ipsw_url && sudo ../bin/pzb -g Firmware/dfu/$IBEC $ipsw_url )
+        ( cd work && ../bin/pzb -g Firmware/dfu/$IBSS $ipsw_url && ../bin/pzb -g Firmware/dfu/$IBEC $ipsw_url )
     fi
     ./bin/img4 -i work/$IBSS -o work/iBSS.raw -k $IBSS_KEY
     ./bin/img4 -i work/$IBEC -o work/iBEC.raw -k $IBEC_KEY
@@ -3615,7 +3615,7 @@ mkdir -p shsh
 mkdir -p boot
 ECID=$(./bin/irecovery -q 2>/dev/null | grep "^ECID:" | cut -d ':' -f2 | xargs) || true
 echo "$VERSION" > boot/$ECID.txt
-sudo ./bin/tsschecker -d $IDENTIFIER -s -e $ECID -i $LATEST_VERSION --save-path shsh
+./bin/tsschecker -d $IDENTIFIER -s -e $ECID -i $LATEST_VERSION --save-path shsh
 
 # Find the .shsh2 file in the shsh directory
 SHSH_PATH=$(find shsh -type f -name "*.shsh2" | head -n 1)
@@ -3651,7 +3651,7 @@ if [[ $IDENTIFIER == iPhone7* || $IDENTIFIER == iPad5* || $IDENTIFIER == iPod7* 
     prepatch_ibssibec_fr
     while true; do
         set +e
-        sudo FUTURERESTORE_I_SOLEMNLY_SWEAR_THAT_I_AM_UP_TO_NO_GOOD=1 \
+        env FUTURERESTORE_I_SOLEMNLY_SWEAR_THAT_I_AM_UP_TO_NO_GOOD=1 \
             ./futurerestore/futurerestore -t $SHSH_PATH --use-pwndfu \
             --sep $sep_path --sep-manifest $manifest_path --skip-blob --rdsk $restoredir/ramdisk.im4p \
             --custom-latest $LATEST_VERSION \
@@ -3670,7 +3670,7 @@ elif [[ $IDENTIFIER == iPad4* || $IDENTIFIER == iPhone6* ]] && [[ $VERSION == 10
     prepatch_ibssibec_fr
     while true; do
         set +e
-        sudo FUTURERESTORE_I_SOLEMNLY_SWEAR_THAT_I_AM_UP_TO_NO_GOOD=1 \
+        env FUTURERESTORE_I_SOLEMNLY_SWEAR_THAT_I_AM_UP_TO_NO_GOOD=1 \
             ./futurerestore/futurerestore -t $SHSH_PATH --use-pwndfu \
             --sep $sep_path --sep-manifest $manifest_path --skip-blob --rdsk $restoredir/ramdisk.im4p \
             --custom-latest $LATEST_VERSION \
@@ -3689,7 +3689,7 @@ elif [[ $IDENTIFIER == iPad5,1 || $IDENTIFIER == iPad5,2 ]] && [[ $VERSION == 11
     prepatch_ibssibec_fr
     while true; do
         set +e
-        sudo FUTURERESTORE_I_SOLEMNLY_SWEAR_THAT_I_AM_UP_TO_NO_GOOD=1 \
+        env FUTURERESTORE_I_SOLEMNLY_SWEAR_THAT_I_AM_UP_TO_NO_GOOD=1 \
             ./futurerestore/futurerestore -t $SHSH_PATH --use-pwndfu \
             --sep $sep_path --sep-manifest $manifest_path --skip-blob --rdsk $restoredir/ramdisk.im4p \
             --custom-latest $LATEST_VERSION \
@@ -3712,7 +3712,7 @@ else
     fi
     while true; do
         set +e
-        sudo FUTURERESTORE_I_SOLEMNLY_SWEAR_THAT_I_AM_UP_TO_NO_GOOD=1 \
+        env FUTURERESTORE_I_SOLEMNLY_SWEAR_THAT_I_AM_UP_TO_NO_GOOD=1 \
             ./futurerestore/futurerestore -t $SHSH_PATH --use-pwndfu --skip-blob --rdsk $restoredir/$ramdisk_det.im4p \
             --custom-latest $LATEST_VERSION \
             --rkrn $restoredir/kernel.im4p --latest-sep \
@@ -3751,7 +3751,7 @@ elif [[ $IDENTIFIER == iPhone11,2 || $IDENTIFIER == iPhone11,4 || $IDENTIFIER ==
 elif [[ $IDENTIFIER == iPad11* ]]; then
     latest_url="https://updates.cdn-apple.com/2026SummerFCS/fullrestores/140-75126/51E6CF98-E76E-45CC-A0BF-978D0D210406/iPad_Spring_2019_26.6.1_23G83_Restore.ipsw"
 fi
-( cd work && sudo ../bin/pzb -g BuildManifest.plist $latest_url )
+( cd work && ../bin/pzb -g BuildManifest.plist $latest_url )
 
 }
 
@@ -3905,18 +3905,18 @@ ECID=$(./bin/irecovery -q 2>/dev/null | grep "^ECID:" | cut -d ':' -f2 | xargs) 
 mkdir -p boot
 echo "$VERSION" > boot/$ECID.txt
 if [[ $IDENTIFIER == iPhone12,8 ]]; then
-    sudo LD_LIBRARY_PATH="lib" ./bin/idevicerestore -ey $restoredir/custom.ipsw
+    env LD_LIBRARY_PATH="lib" ./bin/idevicerestore -ey $restoredir/custom.ipsw
     echo "Restore has finished! Read above if there are any errors"
     exit 0
 elif [[ $VERSION == 16.* || $VERSION == 17.* ]] && [[ $IDENTIFIER != iPhone12,8 ]]; then
-    sudo LD_LIBRARY_PATH="lib" ./bin/idevicerestore -ey $restoredir/custom.ipsw
+    env LD_LIBRARY_PATH="lib" ./bin/idevicerestore -ey $restoredir/custom.ipsw
     echo "Restore has finished! Read above if there are any errors"
     exit 0
 fi
 echo "Fetching shsh blobs for iOS $LATEST_VERSION"
 rm -rf "shsh"
 mkdir -p shsh
-sudo ./bin/tsschecker -d $IDENTIFIER -s -e $ECID -i $LATEST_VERSION --save-path shsh --apnonce $APNONCE
+./bin/tsschecker -d $IDENTIFIER -s -e $ECID -i $LATEST_VERSION --save-path shsh --apnonce $APNONCE
 # Find the .shsh2 file in the shsh directory
 SHSH_PATH=$(find shsh -type f -name "*.shsh2" | head -n 1)
 if [[ -z "$SHSH_PATH" ]]; then
@@ -3925,7 +3925,7 @@ if [[ -z "$SHSH_PATH" ]]; then
 fi
 while true; do
     set +e
-    sudo ./futurerestore/futurerestore -t $SHSH_PATH $rsep_flag --latest-sep $updatebb_flag $restoredir/custom.ipsw
+    ./futurerestore/futurerestore -t $SHSH_PATH $rsep_flag --latest-sep $updatebb_flag $restoredir/custom.ipsw
     EXIT_CODE=$?
     set -e
     if [[ $EXIT_CODE -eq 139 ]]; then
@@ -3979,7 +3979,7 @@ RDSK_KEY=$(grep "rdsk-$VERSION:" "$KEY_FILE" | cut -d':' -f2 | xargs)
 ROOT_KEY=$(grep "fstm-$VERSION:" "$KEY_FILE" | cut -d':' -f2 | xargs)
 unzip "$IPSW_PATH" -d tmp1
 mkdir -p work
-sudo plutil -replace BuildIdentities.0.Manifest.RestoreDeviceTree.Info.Path -string "Firmware/all_flash/DeviceTree.im4p" tmp1/BuildManifest.plist
+plutil -replace BuildIdentities.0.Manifest.RestoreDeviceTree.Info.Path -string "Firmware/all_flash/DeviceTree.im4p" tmp1/BuildManifest.plist
 # ramdisk handling
 rootfs_dmg=$(find_dmg tmp1 largest)
 # ramdisk and restore hax First.
@@ -3994,9 +3994,9 @@ elif [[ $IDENTIFIER == iPhone6* ]]; then
 fi
 smallest_dmg="058-50463-070.dmg"
 mkdir -p work
-( cd work && sudo ../bin/pzb -g $smallest_dmg $ipsw_url )
-( cd work && sudo ../bin/pzb -g Firmware/all_flash/$ALLFLASH/$DEVICETREE $ipsw_url )
-( cd work && sudo ../bin/pzb -g $KERNEL10 $ipsw_url )
+( cd work && ../bin/pzb -g $smallest_dmg $ipsw_url )
+( cd work && ../bin/pzb -g Firmware/all_flash/$ALLFLASH/$DEVICETREE $ipsw_url )
+( cd work && ../bin/pzb -g $KERNEL10 $ipsw_url )
 cp -v work/$DEVICETREE tmp1/Firmware/all_flash/DeviceTree.im4p
 ./bin/img4 -i work/$smallest_dmg -o work/ramdisk.raw
 ./bin/hfsplus work/ramdisk.raw grow 60000000
@@ -4219,7 +4219,7 @@ if [[ $actrec_restore == 1 ]]; then
     echo "Injecting activation files into rootfs..."
     $placetodir
     ./bin/hfsplus "tmp1/rootfs.raw" add $actsave_dir/IC-Info.sisv private/var/mobile/Library/FairPlay/iTunes_Control/iTunes/IC-Info.sisv
-    sudo ./bin/hfsplus "tmp1/rootfs.raw" add $actsave_dir/com.apple.commcenter.device_specific_nobackup.plist private/var/wireless/Library/Preferences/com.apple.commcenter.device_specific_nobackup.plist
+    ./bin/hfsplus "tmp1/rootfs.raw" add $actsave_dir/com.apple.commcenter.device_specific_nobackup.plist private/var/wireless/Library/Preferences/com.apple.commcenter.device_specific_nobackup.plist
     echo "Setting permissions..."
     $chmodfile
     ./bin/hfsplus "tmp1/rootfs.raw" chmod 664 private/var/mobile/Library/FairPlay/iTunes_Control/iTunes/IC-Info.sisv
@@ -4349,7 +4349,7 @@ do_regular_restore_seprmvr64(){
 
 rm -rf "shsh"
 mkdir -p shsh
-sudo ./bin/tsschecker -d $IDENTIFIER -s -e $ECID -i $LATEST_VERSION --save-path shsh
+./bin/tsschecker -d $IDENTIFIER -s -e $ECID -i $LATEST_VERSION --save-path shsh
 # Find the .shsh2 file in the shsh directory
 SHSH_PATH=$(find shsh -type f -name "*.shsh2" | head -n 1)
 if [[ -z "$SHSH_PATH" ]]; then
@@ -4365,7 +4365,7 @@ sleep 5
 ECID=$(./bin/irecovery -q 2>/dev/null | grep "^ECID:" | cut -d ':' -f2 | xargs) || true
 mkdir -p boot
 echo "$VERSION" > boot/$ECID.txt
-sudo LD_LIBRARY_PATH="lib" ./bin/idevicerestore -ey $restoredir/$ipsw_custom
+env LD_LIBRARY_PATH="lib" ./bin/idevicerestore -ey $restoredir/$ipsw_custom
 
 }
 
@@ -4384,11 +4384,11 @@ elif [[ $IDENTIFIER == iPad5,2 ]]; then
 fi
 if [[ $IDENTIFIER == iPad5,2 || $IDENTIFIER == iPhone7* ]]; then
     mkdir -p work
-    ( cd work && sudo ../bin/pzb -g Firmware/dfu/$IBSS10 $ipsw_url )
-    ( cd work && sudo ../bin/pzb -g Firmware/dfu/$IBEC10 $ipsw_url )
-    ( cd work && sudo ../bin/pzb -g $smallest_dmg $ipsw_url )
-    ( cd work && sudo ../bin/pzb -g Firmware/all_flash/$ALLFLASH/$DEVICETREE $ipsw_url )
-    ( cd work && sudo ../bin/pzb -g $KERNEL10 $ipsw_url )
+    ( cd work && ../bin/pzb -g Firmware/dfu/$IBSS10 $ipsw_url )
+    ( cd work && ../bin/pzb -g Firmware/dfu/$IBEC10 $ipsw_url )
+    ( cd work && ../bin/pzb -g $smallest_dmg $ipsw_url )
+    ( cd work && ../bin/pzb -g Firmware/all_flash/$ALLFLASH/$DEVICETREE $ipsw_url )
+    ( cd work && ../bin/pzb -g $KERNEL10 $ipsw_url )
 fi
 ./bin/img4 -i work/$IBSS10 -o tmp1/iBSS.raw -k $IBSS_KEY2
 ./bin/img4 -i work/$IBEC10  -o tmp1/iBEC.raw -k $IBEC_KEY2
@@ -4468,7 +4468,7 @@ do_special_restore_seprmvr64(){
 
 rm -rf "shsh"
 mkdir -p shsh
-sudo ./bin/tsschecker -d $IDENTIFIER -s -e $ECID -i $LATEST_VERSION --save-path shsh
+./bin/tsschecker -d $IDENTIFIER -s -e $ECID -i $LATEST_VERSION --save-path shsh
 # Find the .shsh2 file in the shsh directory
 SHSH_PATH=$(find shsh -type f -name "*.shsh2" | head -n 1)
 if [[ -z "$SHSH_PATH" ]]; then
@@ -4485,8 +4485,8 @@ elif [[ $IDENTIFIER == iPad5* ]]; then
     ipsw_url="http://appldnld.apple.com/ios10.3/091-02967-20170327-758827FE-0D86-11E7-9B30-90CE122AC769/iPad_64bit_TouchID_10.3_14E277_Restore.ipsw"
 fi
 mkdir -p work
-( cd work && sudo ../bin/pzb -g Firmware/dfu/$IBSS $ipsw_url )
-( cd work && sudo ../bin/pzb -g Firmware/dfu/$IBEC $ipsw_url )
+( cd work && ../bin/pzb -g Firmware/dfu/$IBSS $ipsw_url )
+( cd work && ../bin/pzb -g Firmware/dfu/$IBEC $ipsw_url )
 ./bin/img4tool -s "$SHSH_PATH" -e -m "$IDENTIFIER-im4m"
 im4m="$IDENTIFIER-im4m"
 ./bin/img4 -i work/$IBSS -o work/iBSS.dec -k $IBSS_KEY
@@ -4518,7 +4518,7 @@ fi
 APNONCE=$(./bin/irecovery -q 2>/dev/null | grep "^NONC:" | cut -d ':' -f2 | xargs)
 rm -rf "shsh"
 mkdir -p shsh
-sudo ./bin/tsschecker -d $IDENTIFIER -s -e $ECID -i $LATEST_VERSION --save-path shsh --apnonce $APNONCE
+./bin/tsschecker -d $IDENTIFIER -s -e $ECID -i $LATEST_VERSION --save-path shsh --apnonce $APNONCE
 # Find the .shsh2 file in the shsh directory
 SHSH_PATH=$(find shsh -type f -name "*.shsh2" | head -n 1)
 if [[ -z "$SHSH_PATH" ]]; then
@@ -4527,7 +4527,7 @@ if [[ -z "$SHSH_PATH" ]]; then
 fi
 while true; do
     set +e
-    sudo FUTURERESTORE_I_SOLEMNLY_SWEAR_THAT_I_AM_UP_TO_NO_GOOD=1 \
+    env FUTURERESTORE_I_SOLEMNLY_SWEAR_THAT_I_AM_UP_TO_NO_GOOD=1 \
         ./futurerestore/futurerestore -t $SHSH_PATH \
         --sep $sep_path --sep-manifest $manifest_path \
         --custom-latest $LATEST_VERSION \
@@ -4751,7 +4751,7 @@ pwn_device
 download_1033_ota_sep
 rm -rf "shsh"
 mkdir -p shsh
-sudo ./bin/tsschecker -d $IDENTIFIER -i 10.3.3 -e $ECID -o -m tmp/BuildManifest-SEP.plist -s --save-path shsh
+./bin/tsschecker -d $IDENTIFIER -i 10.3.3 -e $ECID -o -m tmp/BuildManifest-SEP.plist -s --save-path shsh
 # Find the .shsh2 file in the shsh directory
 SHSH_PATH=$(find shsh -type f -name "*.shsh2" | head -n 1)
 if [[ -z "$SHSH_PATH" ]]; then
@@ -4762,7 +4762,7 @@ det_rsep_flag
 prepatch_ibssibec_fr
 while true; do
     set +e
-    sudo FUTURERESTORE_I_SOLEMNLY_SWEAR_THAT_I_AM_UP_TO_NO_GOOD=1 \
+    env FUTURERESTORE_I_SOLEMNLY_SWEAR_THAT_I_AM_UP_TO_NO_GOOD=1 \
         ./futurerestore/futurerestore -t $SHSH_PATH --use-pwndfu \
         --sep $sep_path --sep-manifest $manifest_path \
         --custom-latest $LATEST_VERSION \
@@ -4937,7 +4937,7 @@ rm -rf "shsh"
 mkdir -p shsh
 mkdir -p tarwork
 mkdir -p work
-sudo ./bin/tsschecker -d $IDENTIFIER -s -e $ECID -i $LATEST_VERSION --save-path shsh 
+./bin/tsschecker -d $IDENTIFIER -s -e $ECID -i $LATEST_VERSION --save-path shsh
 
 # Find the .shsh2 file in the shsh directory
 SHSH_PATH=$(find shsh -type f -name "*.shsh2" | head -n 1)
@@ -4962,7 +4962,7 @@ else
 fi
 curl -L -o work/ssh.tar.gz https://github.com/verygenericname/sshtars/raw/refs/heads/main/ssh.tar.gz
 gzip -d work/ssh.tar.gz
-( cd work && sudo ../bin/pzb -g $ramdisk_dmg $ipsw_url && sudo ../bin/pzb -g Firmware/$ramdisk_dmg.trustcache $ipsw_url && sudo ../bin/pzb -g Firmware/agx/$GFX $ipsw_url && sudo ../bin/pzb -g Firmware/ane/$ANE $ipsw_url && sudo ../bin/pzb -g Firmware/$IOFW $ipsw_url && sudo ../bin/pzb -g Firmware/all_flash/$DEVICETREE $ipsw_url && sudo ../bin/pzb -g Firmware/dfu/$IBSS $ipsw_url && sudo ../bin/pzb -g $KERNEL $ipsw_url )
+( cd work && ../bin/pzb -g $ramdisk_dmg $ipsw_url && ../bin/pzb -g Firmware/$ramdisk_dmg.trustcache $ipsw_url && ../bin/pzb -g Firmware/agx/$GFX $ipsw_url && ../bin/pzb -g Firmware/ane/$ANE $ipsw_url && ../bin/pzb -g Firmware/$IOFW $ipsw_url && ../bin/pzb -g Firmware/all_flash/$DEVICETREE $ipsw_url && ../bin/pzb -g Firmware/dfu/$IBSS $ipsw_url && ../bin/pzb -g $KERNEL $ipsw_url )
 ./bin/img4 -i work/$IBSS -o work/iBSS.raw $key
 ./bin/iBootPatch -v -b "-v rd=md0 wdt=-1" work/iBSS.raw $sshrd_path/iBSS.patch
 # kernel
@@ -5041,7 +5041,7 @@ else
 fi
 ./bin/sshpass -p "alpine" ssh root@127.0.0.1 -p2222 -o StrictHostKeyChecking=no "/sbin/apfs_deletefs $data || true"
 ./bin/sshpass -p "alpine" ssh root@127.0.0.1 -p2222 -o StrictHostKeyChecking=no "/sbin/newfs_apfs -A -D -o role=r -v DataX /dev/disk0s1 || true"
-( cd work && sudo ../bin/pzb -g Firmware/dfu/$IBSS $ipsw_url )
+( cd work && ../bin/pzb -g Firmware/dfu/$IBSS $ipsw_url )
 ./bin/img4 -i work/$IBSS -o work/iBSS.raw
 ./bin/iBootPatch -v -b "-v" work/iBSS.raw work/iBSS.patch
 ./bin/iBootpatch3 work/iBSS.patch $boot_dir/iBSS.boot
