@@ -22,7 +22,7 @@ VERSION_LATEST=""
 BREW_MIN="15.0"
 outdated=""
 
-set -euo pipefail
+set -eo pipefail
 
 error_handler() {
     local exit_code=$?
@@ -298,7 +298,7 @@ pick_file() {
 echo "Checking for required dependencies..."
 
 if [[ $dist == 1 ]]; then
-    DEPENDENCIES=(libusb-1.0-0-dev libusbmuxd-tools libimobiledevice-utils usbmuxd zenity git curl make gcc python3-pip python3-usb jq bc aria2)
+    DEPENDENCIES=(libusb-1.0-0-dev usbmuxd zenity git curl make gcc python3-pip python3-usb bc aria2)
     MISSING_PACKAGES=()
 
     for pkg in "${DEPENDENCIES[@]}"; do
@@ -316,7 +316,7 @@ if [[ $dist == 1 ]]; then
         echo "All dependencies are installed." 
     fi
 elif [[ $dist == 2 ]]; then
-    DEPENDENCIES=(libusb libusbmuxd libimobiledevice usbmuxd zenity git curl make gcc base-devel python-pip jq bc aria2)
+    DEPENDENCIES=(libusb libusbmuxd libimobiledevice usbmuxd zenity git curl make gcc base-devel python-pip bc aria2)
     MISSING_PACKAGES=()
 
 
@@ -334,7 +334,7 @@ elif [[ $dist == 2 ]]; then
         echo "All dependencies are already installed."
     fi
 elif [[ $dist == 5 ]]; then
-    DEPENDENCIES=(libusb1-devel usbmuxd libimobiledevice-utils zenity git curl make gcc python3-pip python3-pyusb jq bc aria2)
+    DEPENDENCIES=(libusb1-devel usbmuxd zenity git curl make gcc python3-pip python3-pyusb bc aria2)
     MISSING_PACKAGES=()
 
     for pkg in "${DEPENDENCIES[@]}"; do
@@ -473,11 +473,11 @@ fetch_firmware() {
             echo "Error: Failed to fetch data from $json_url" >&2
             return 1
         }
-        if ! echo "$json" | jq empty 2>/dev/null; then
+        if ! echo "$json" | ./bin/jq empty 2>/dev/null; then
             echo "Error: Invalid JSON data" >&2
             return 1
         fi
-        url=$(echo "$json" | jq -r --arg dev "$IDENTIFIER" '.[] | select(.devices | index($dev)) | .url' | head -1)
+        url=$(echo "$json" | ./bin/jq -r --arg dev "$IDENTIFIER" '.[] | select(.devices | index($dev)) | .url' | head -1)
         if [ -z "$url" ] || [ "$url" = "null" ]; then
             echo "Error: Firmware not found for device '$IDENTIFIER'" >&2
             return 1
@@ -532,21 +532,21 @@ fetch_firmware() {
         echo "Error: API returned empty content" >&2
         return 1
     fi
-    if ! echo "$json" | jq empty 2>/dev/null; then
+    if ! echo "$json" | ./bin/jq empty 2>/dev/null; then
         echo "Error: API returned invalid JSON, content:" >&2
         echo "$json" | head -n 10 >&2
         return 1
     fi
     filter='first(.firmwares[] | select(.version == "'"$version_request"'"))'
-    url=$(echo "$json" | jq -r "$filter | .url")
-    md5=$(echo "$json" | jq -r "$filter | .md5sum")
-    identifier2=$(echo "$json" | jq -r "$filter | .identifier")
-    version2=$(echo "$json" | jq -r "$filter | .version")
-    buildid=$(echo "$json" | jq -r "$filter | .buildid")
-    filesize=$(echo "$json" | jq -r "$filter | .filesize")
-    sha256=$(echo "$json" | jq -r "$filter | .sha256sum")
-    sha1=$(echo "$json" | jq -r "$filter | .sha1sum")
-    is_signed=$(echo "$json" | jq -r "$filter | .signed")
+    url=$(echo "$json" | ./bin/jq -r "$filter | .url")
+    md5=$(echo "$json" | ./bin/jq -r "$filter | .md5sum")
+    identifier2=$(echo "$json" | ./bin/jq -r "$filter | .identifier")
+    version2=$(echo "$json" | ./bin/jq -r "$filter | .version")
+    buildid=$(echo "$json" | ./bin/jq -r "$filter | .buildid")
+    filesize=$(echo "$json" | ./bin/jq -r "$filter | .filesize")
+    sha256=$(echo "$json" | ./bin/jq -r "$filter | .sha256sum")
+    sha1=$(echo "$json" | ./bin/jq -r "$filter | .sha1sum")
+    is_signed=$(echo "$json" | ./bin/jq -r "$filter | .signed")
     # b to gb
     filesize=$(echo "scale=2; $filesize / 1024 / 1024 / 1024" | bc)
 
@@ -759,6 +759,8 @@ if [[ -f "./bin/img4" && \
       -f "./bin/ldid" && \
       -f "./activate.sh" && \
       -f "./backup.sh" && \
+      -f "./bin/jq" && \
+      -f "./bin/ideviceinfo" && \
       -f "./futurerestore/futurerestore" ]]; then
     echo "Found necessary binaries."
 elif [[ $dist == 3 ]]; then
@@ -767,14 +769,16 @@ elif [[ $dist == 3 ]]; then
 
     mkdir -p bin futurerestore
 
-    curl -L -o bin/img4 https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Darwin/img4
-    curl -L -o bin/img4tool https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Darwin/img4tool
-    curl -L -o bin/pzb https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Darwin/pzb
-    curl -L -o bin/KPlooshFinder https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Darwin/KPlooshFinder
+    curl -L -o bin/jq https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/macos/jq
+    curl -L -o bin/ideviceinfo https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/macos/ideviceinfo
+    curl -L -o bin/img4 https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/macos/img4
+    curl -L -o bin/img4tool https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/macos/img4tool
+    curl -L -o bin/pzb https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/macos/pzb
+    curl -L -o bin/KPlooshFinder https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/macos/KPlooshFinder
     curl -L -o bin/dsc64patcher https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Darwin/dsc64patcher
-    curl -L -o bin/kerneldiff https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Darwin/kerneldiff
+    curl -L -o bin/kerneldiff https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/macos/kerneldiff
     curl -L -o bin/dtree_patcher https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Darwin/dtree_patcher
-    curl -L -o bin/irecovery https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Darwin/irecovery
+    curl -L -o bin/irecovery https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/macos/irecovery
     curl -L -o bin/iBoot64Patcher https://github.com/edwin170/downr1n/raw/refs/heads/main/binaries/Darwin/iBoot64Patcher
     curl -L -o bin/Kernel64Patcher2 https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Darwin/Kernel64Patcher
     curl -L -o bin/hfsplus https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/macos/hfsplus
@@ -788,8 +792,8 @@ elif [[ $dist == 3 ]]; then
     curl -L -o bin/iBoot64Patcher2 https://github.com/Orangera1n/spironolactone/raw/refs/heads/main/Darwin/iBoot64Patcher_cryptic
     # sshpass
     curl -L -o bin/sshpass https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/macos/sshpass
-    curl -L -o bin/iproxy https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Darwin/iproxy
-    curl -L -o bin/dmg https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Darwin/dmg
+    curl -L -o bin/iproxy https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/macos/iproxy
+    curl -L -o bin/dmg https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/macos/dmg
     curl -L -o bin/ipatcher https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Darwin/iPatcher
     # install additional restored_external patcher (iPhone X only)
     curl -L -o bin/ipx_restored_patcher https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/macos/ipx_restored_patcher
@@ -852,22 +856,36 @@ elif [[ $dist == 3 ]]; then
     # download activate.sh and backup.sh from hiylx's eclipsera1n, for backing up and restoring iOS 16+ activation files on 14.0-15.7(.2)
     curl -L -o activate.sh https://github.com/hiylx/eclipsera1n/raw/refs/heads/main/activate.sh
     curl -L -o backup.sh https://github.com/hiylx/eclipsera1n/raw/refs/heads/main/backup.sh
-    curl -L -o futurerestore/futurerestore.zip https://github.com/LukeeGD/futurerestore/releases/download/latest/futurerestore-macOS-RELEASE-main.zip
+    curl -L -o futurerestore/futurerestore.zip https://github.com/LukeZGD/futurerestore/releases/download/latest/futurerestore-macOS-RELEASE-main.zip
     # fetch idevicerestore for 7.0-9.3.5 restores 
     curl -L -o bin/idevicerestore https://github.com/NyanSatan/SundanceInH2A/raw/refs/heads/master/executables/Darwin/idevicerestore
     # libs
+    rm -rf "lib"
+    mkdir lib
+    for lib in \
+        libgeneral.0.dylib \
+        libimg4tool.0.dylib \
+        libimobiledevice-1.0.6.dylib \
+        libimobiledevice-glue-1.0.0.dylib \
+        libirecovery-1.0.5.dylib \
+        libplist-2.0.12.dylib \
+        libtatsu.0.dylib \
+        libusbmuxd-2.0.7.dylib
+    do
+        curl -L -o lib/$lib https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/macos/lib/$lib
+    done
     chmod +x bin/*
     chmod +x *.sh
 
     cd futurerestore || exit
     unzip -o futurerestore.zip
-    tar -xf futurerestore-macOS-v2.0.0-Build_329-RELEASE.tar.xz
-    cp futurerestore-macOS-v2.0.0-Build_329-RELEASE/* . || true
+    tar -xf futurerestore-macOS-v2.0.0-Build_*-RELEASE.tar.xz
+    cp futurerestore-macOS-v2.0.0-Build_*-RELEASE/* . || true
     chmod +x futurerestore
     rm -rf *.tar.xz
     rm -rf *.sh
     rm -rf *.zip
-    rm -rf "futurerestore-macOS-v2.0.0-Build_329-RELEASE" 
+    rm -rf "futurerestore-macOS-v2.0.0-Build_"*"-RELEASE"
     cd ..
     xattr -c bin/*
     xattr -c futurerestore/futurerestore
@@ -877,14 +895,15 @@ elif [[ $dist == 4 ]]; then
 
     mkdir -p bin futurerestore
 
-    curl -L -o bin/img4 https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Darwin/img4
-    curl -L -o bin/img4tool https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Darwin/img4tool
-    curl -L -o bin/pzb https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Darwin/pzb
-    curl -L -o bin/KPlooshFinder https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Darwin/KPlooshFinder
+    curl -L -o bin/jq https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/macos/jq
+    curl -L -o bin/img4 https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/macos/img4
+    curl -L -o bin/img4tool https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/macos/img4tool
+    curl -L -o bin/pzb https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/macos/pzb
+    curl -L -o bin/KPlooshFinder https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/macos/KPlooshFinder
     curl -L -o bin/dsc64patcher https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Darwin/dsc64patcher
-    curl -L -o bin/kerneldiff https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Darwin/kerneldiff
+    curl -L -o bin/kerneldiff https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/macos/kerneldiff
     curl -L -o bin/dtree_patcher https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Darwin/dtree_patcher
-    curl -L -o bin/irecovery https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Darwin/irecovery
+    curl -L -o bin/irecovery https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/macos/irecovery
     curl -L -o bin/iBoot64Patcher https://github.com/edwin170/downr1n/raw/refs/heads/main/binaries/Darwin/iBoot64Patcher
     curl -L -o bin/Kernel64Patcher2 https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Darwin/Kernel64Patcher
     curl -L -o bin/hfsplus https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/macos/hfsplus
@@ -898,8 +917,8 @@ elif [[ $dist == 4 ]]; then
     curl -L -o bin/iBoot64Patcher2 https://github.com/Orangera1n/spironolactone/raw/refs/heads/main/Darwin/iBoot64Patcher_cryptic
     # sshpass
     curl -L -o bin/sshpass https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/macos/sshpass
-    curl -L -o bin/iproxy https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Darwin/iproxy
-    curl -L -o bin/dmg https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Darwin/dmg
+    curl -L -o bin/iproxy https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/macos/iproxy
+    curl -L -o bin/dmg https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/macos/dmg
     curl -L -o bin/ipatcher https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Darwin/iPatcher
     # install additional restored_external patcher (iPhone X only)
     curl -L -o bin/ipx_restored_patcher https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/macos/ipx_restored_patcher
@@ -962,22 +981,36 @@ elif [[ $dist == 4 ]]; then
     # download activate.sh and backup.sh from hiylx's eclipsera1n, for backing up and restoring iOS 16+ activation files on 14.0-15.7(.2)
     curl -L -o activate.sh https://github.com/hiylx/eclipsera1n/raw/refs/heads/main/activate.sh
     curl -L -o backup.sh https://github.com/hiylx/eclipsera1n/raw/refs/heads/main/backup.sh
-    curl -L -o futurerestore/futurerestore.zip https://github.com/LukeeGD/futurerestore/releases/download/latest/futurerestore-macOS-RELEASE-main.zip
+    curl -L -o futurerestore/futurerestore.zip https://github.com/LukeZGD/futurerestore/releases/download/latest/futurerestore-macOS-RELEASE-main.zip
     # fetch idevicerestore for 7.0-9.3.5 restores 
     curl -L -o bin/idevicerestore https://github.com/NyanSatan/SundanceInH2A/raw/refs/heads/master/executables/Darwin/idevicerestore
     # libs
+    rm -rf "lib"
+    mkdir lib
+    for lib in \
+        libgeneral.0.dylib \
+        libimg4tool.0.dylib \
+        libimobiledevice-1.0.6.dylib \
+        libimobiledevice-glue-1.0.0.dylib \
+        libirecovery-1.0.5.dylib \
+        libplist-2.0.12.dylib \
+        libtatsu.0.dylib \
+        libusbmuxd-2.0.7.dylib
+    do
+        curl -L -o lib/$lib https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/macos/lib/$lib
+    done
     chmod +x bin/*
     chmod +x *.sh
 
     cd futurerestore || exit
     unzip -o futurerestore.zip
-    tar -xf futurerestore-macOS-v2.0.0-Build_329-RELEASE.tar.xz
-    cp futurerestore-macOS-v2.0.0-Build_329-RELEASE/* . || true
+    tar -xf futurerestore-macOS-v2.0.0-Build_*-RELEASE.tar.xz
+    cp futurerestore-macOS-v2.0.0-Build_*-RELEASE/* . || true
     chmod +x futurerestore
     rm -rf *.tar.xz
     rm -rf *.sh
     rm -rf *.zip
-    rm -rf "futurerestore-macOS-v2.0.0-Build_329-RELEASE" 
+    rm -rf "futurerestore-macOS-v2.0.0-Build_"*"-RELEASE"
     cd ..
     xattr -c bin/*
     xattr -c futurerestore/futurerestore
@@ -987,17 +1020,19 @@ else
 
     mkdir -p bin futurerestore
 
-    download_with_retry "https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Linux/img4" "bin/img4" 1024
-    download_with_retry "https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Linux/img4tool" "bin/img4tool" 1024
-    download_with_retry "https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Linux/KPlooshFinder" "bin/KPlooshFinder" 1024
-    download_with_retry "https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Linux/pzb" "bin/pzb" 1024
+    download_with_retry "https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/linux/x86_64/jq" "bin/jq" 1024
+    download_with_retry "https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/linux/x86_64/ideviceinfo" "bin/ideviceinfo" 1024
+    download_with_retry "https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/linux/x86_64/img4" "bin/img4" 1024
+    download_with_retry "https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/linux/x86_64/img4tool" "bin/img4tool" 1024
+    download_with_retry "https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/linux/x86_64/KPlooshFinder" "bin/KPlooshFinder" 1024
+    download_with_retry "https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/linux/x86_64/pzb" "bin/pzb" 1024
     download_with_retry "https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Linux/dsc64patcher" "bin/dsc64patcher" 1024
-    download_with_retry "https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Linux/kerneldiff" "bin/kerneldiff" 1024
+    download_with_retry "https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/linux/x86_64/kerneldiff" "bin/kerneldiff" 1024
     download_with_retry "https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Linux/dtree_patcher" "bin/dtree_patcher" 1024
-    download_with_retry "https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Linux/irecovery" "bin/irecovery" 1024
+    download_with_retry "https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/linux/x86_64/irecovery" "bin/irecovery" 1024
     download_with_retry "https://github.com/edwin170/downr1n/raw/refs/heads/main/binaries/Linux/iBoot64Patcher" "bin/iBoot64Patcher" 1024
     download_with_retry "https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Linux/Kernel64Patcher" "bin/Kernel64Patcher2" 1024
-    download_with_retry "https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Linux/hfsplus" "bin/hfsplus" 1024
+    download_with_retry "https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/linux/x86_64/hfsplus" "bin/hfsplus" 1024
     # sshpass
     # iboot patcher oops
     curl -L -o ibootpatch.c https://gist.githubusercontent.com/pwnerblu/c759c0060b5167a411b3b3adfcd07572/raw/05cd068ca7ec03d20e85103c1a3778634c8cf346/patch.c
@@ -1019,8 +1054,8 @@ else
     rm -rf "iBootpatch2"
     download_with_retry "https://github.com/appleiPodTouch4/spironolactone/raw/refs/heads/main/Linux/x86_64/iBoot64patcher_cryptic" "bin/iBoot64Patcher2" 1024
     download_with_retry "https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/linux/x86_64/sshpass" "bin/sshpass" 1024
-    download_with_retry "https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Linux/iproxy" "bin/iproxy" 1024
-    download_with_retry "https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Linux/dmg" "bin/dmg" 1024
+    download_with_retry "https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/linux/x86_64/iproxy" "bin/iproxy" 1024
+    download_with_retry "https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/linux/x86_64/dmg" "bin/dmg" 1024
     download_with_retry "https://github.com/LukeZGD/Semaphorin/raw/refs/heads/main/Linux/ipatcher" "bin/ipatcher" 1024
     # install additional restored_external patcher (iPhone X only)
     download_with_retry "https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/linux/x86_64/ipx_restored_patcher" "bin/ipx_restored_patcher" 1024
@@ -1058,7 +1093,7 @@ else
     # download activate.sh and backup.sh from hiylx's eclipsera1n, for backing up and restoring iOS 16+ activation files on 14.0-15.7(.2)
     curl -L -o activate.sh https://github.com/hiylx/eclipsera1n/raw/refs/heads/main/activate.sh
     curl -L -o backup.sh https://github.com/hiylx/eclipsera1n/raw/refs/heads/main/backup.sh
-    download_with_retry "https://github.com/LukeeGD/futurerestore/releases/download/latest/futurerestore-Linux-x86_64-RELEASE-main.zip" "futurerestore/futurerestore.zip" 1024
+    download_with_retry "https://github.com/LukeZGD/futurerestore/releases/download/latest/futurerestore-Linux-x86_64-RELEASE-main.zip" "futurerestore/futurerestore.zip" 1024
     # fetch idevicerestore for 7.0-9.3.5 restores 
     download_with_retry "https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/linux/x86_64/idevicerestore" "bin/idevicerestore" 1024
     # libs
@@ -1071,8 +1106,8 @@ else
 
     cd futurerestore || exit
     unzip -o futurerestore.zip
-    tar -xf futurerestore-Linux-x86_64-v2.0.0-Build_329-RELEASE.tar.xz
-    cp futurerestore-Linux-x86_64-v2.0.0-Build_329-RELEASE/* . || true
+    tar -xf futurerestore-Linux-x86_64-v2.0.0-Build_*-RELEASE.tar.xz
+    cp futurerestore-Linux-x86_64-v2.0.0-Build_*-RELEASE/* . 2>/dev/null || true
     chmod +x linux_fix.sh || true
     sudo ./linux_fix.sh || true
     rm -rf linux_fix.sh || true
@@ -1080,7 +1115,7 @@ else
     rm -rf *.tar.xz || true
     rm -rf *.sh || true
     rm -rf *.zip || true
-    rm -rf "futurerestore-Linux-x86_64-v2.0.0-Build_329-RELEASE" 
+    rm -rf "futurerestore-Linux-x86_64-v2.0.0-Build_"*"-RELEASE"
     cd ..
 fi
 
@@ -1101,7 +1136,8 @@ for pkg in "${PACKAGES[@]}"; do
     fi
 done
 
-IDEVICE_INFO=$(ideviceinfo 2>&1) || true
+[[ $(uname) == "Linux" ]] && IDEVICE_INFO_LIB="env LD_LIBRARY_PATH=./lib"
+IDEVICE_INFO=$($IDEVICE_INFO_LIB ./bin/ideviceinfo 2>&1) || true
 IDEVICE_STATUS=$?
 if [[ $IDEVICE_STATUS -eq 0 && "$IDEVICE_INFO" != *"No device found!"* && "$IDEVICE_INFO" != *"ERROR:"* ]]; then
     IDENTIFIER=$(echo "$IDEVICE_INFO" | grep "^ProductType:" | cut -d ':' -f2 | xargs)
@@ -1111,7 +1147,7 @@ if [[ $IDEVICE_STATUS -eq 0 && "$IDEVICE_INFO" != *"No device found!"* && "$IDEV
     MODE="Normal"
 elif [[ $IDEVICE_STATUS -ne 0 && "$IDEVICE_INFO" != *"No device found!"* ]] || [[ "$IDEVICE_INFO" == *"ERROR:"* && "$IDEVICE_INFO" != *"No device found!"* ]]; then
     # ideviceinfo ran but failed for another reason, try -s
-    IDEVICE_INFO=$(ideviceinfo -s 2>&1) || true
+    IDEVICE_INFO=$($IDEVICE_INFO_LIB ./bin/ideviceinfo -s 2>&1) || true
     IDEVICE_STATUS=$?
     if [[ $IDEVICE_STATUS -eq 0 && "$IDEVICE_INFO" != *"No device found!"* ]]; then
         IDENTIFIER=$(echo "$IDEVICE_INFO" | grep "^ProductType:" | cut -d ':' -f2 | xargs)
@@ -3756,7 +3792,6 @@ fi
 }
 
 do_tethered_restore_a12_a13(){
-
 # fix issue on Linux
 if [[ $dist == 3 || $dist == 4 ]]; then
     if [[ $macos_ver == 12.* || $macos_ver == 13.* || $macos_ver == 14.* || $macos_ver == 15.* || $macos_ver == 26.* || $macos_ver == 27.* ]]; then

@@ -1,3 +1,10 @@
 bin/*
 !bin/notice.txt
 apfs/  
+activate.sh
+backup.sh
+lib/
+futurerestore/
+boot/
+restorefiles/
+shsh/
