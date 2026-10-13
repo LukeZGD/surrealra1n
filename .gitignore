@@ -8,3 +8,6 @@ futurerestore/
 boot/
 restorefiles/
 shsh/
+tmp*/
+work/
+*.log
