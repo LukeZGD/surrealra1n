@@ -105,15 +105,6 @@ download_with_retry() {
 }
 
 echo "Your surrealra1n version: $CURRENT_VERSION"
-# Request sudo password upfront
-echo "Enter your user password when prompted to"
-sudo -v || exit 1
-
-sudo rm -rf "tmp"
-sudo rm -rf "tmp1"
-sudo rm -rf "tmp2"
-sudo rm -rf "work"
-sudo rm -rf "tarwork"
 
 dist=0
 
@@ -144,11 +135,9 @@ elif [[ -r /etc/os-release ]]; then
     elif [[ "$ID" == "debian" || "${ID_LIKE:-}" == *debian* ]]; then
         DISTRO="Debian"
         dist=1
-        read -n 1 -s -r -p "Press any key to continue"
     elif [[ "$ID" == "fedora" || "${ID_LIKE:-}" == *fedora* || "${ID_LIKE:-}" == *rhel* ]]; then
         DISTRO="Fedora"
         dist=5
-        read -n 1 -s -r -p "Press any key to continue"
     # generic Linux fallback
     elif command -v apt-get &>/dev/null; then
         DISTRO="Debian"
@@ -170,6 +159,7 @@ elif [[ -r /etc/os-release ]]; then
         echo "Unrecognized distro; treating as Fedora-based (zypper detected, using dnf flow)."
         read -n 1 -s -r -p "Press any key to continue"
     fi
+    echo
 fi
 
 if [[ $dist == 3 || $dist == 4 ]]; then
@@ -2893,6 +2883,7 @@ elif [[ $IDENTIFIER == iPhone11,6 || $IDENTIFIER == iPad11,3 ]]; then
 elif [[ $IDENTIFIER == iPad11,4 ]]; then
     IDENTITY="3"
 fi
+chmod 644 tmp2/BuildManifest.plist
 env KERNEL2="$KERNEL2" IDENTITY="$IDENTITY" python3 <<'PY'
 import os
 import plistlib
