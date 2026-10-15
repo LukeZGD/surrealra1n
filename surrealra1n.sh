@@ -105,6 +105,7 @@ download_with_retry() {
 }
 
 echo "Your surrealra1n version: $CURRENT_VERSION"
+rm -rf tmp* *work
 
 dist=0
 
@@ -288,7 +289,7 @@ pick_file() {
 echo "Checking for required dependencies..."
 
 if [[ $dist == 1 ]]; then
-    DEPENDENCIES=(libusb-1.0-0-dev usbmuxd zenity git curl make gcc python3-pip python3-usb bc aria2)
+    DEPENDENCIES=(usbmuxd zenity git curl make gcc python3 bc aria2)
     MISSING_PACKAGES=()
 
     for pkg in "${DEPENDENCIES[@]}"; do
@@ -306,7 +307,7 @@ if [[ $dist == 1 ]]; then
         echo "All dependencies are installed." 
     fi
 elif [[ $dist == 2 ]]; then
-    DEPENDENCIES=(libusb libusbmuxd libimobiledevice usbmuxd zenity git curl make gcc base-devel python-pip bc aria2)
+    DEPENDENCIES=(libusb libusbmuxd libimobiledevice usbmuxd zenity git curl make gcc base-devel python bc aria2)
     MISSING_PACKAGES=()
 
 
@@ -324,7 +325,7 @@ elif [[ $dist == 2 ]]; then
         echo "All dependencies are already installed."
     fi
 elif [[ $dist == 5 ]]; then
-    DEPENDENCIES=(libusb1-devel usbmuxd zenity git curl make gcc python3-pip python3-pyusb bc aria2)
+    DEPENDENCIES=(libusb1-devel usbmuxd zenity git curl make gcc python3 bc aria2)
     MISSING_PACKAGES=()
 
     for pkg in "${DEPENDENCIES[@]}"; do
@@ -1109,24 +1110,7 @@ else
     cd ..
 fi
 
-echo "Checking for dependencies that are required for usbliter8ctl, assuming Python3 is on your system"
-# Check required packages
-PACKAGES=("pyusb" "usb")
-for pkg in "${PACKAGES[@]}"; do
-    if pip3 show "$pkg" &>/dev/null; then
-        version=$(pip3 show "$pkg" | grep Version | awk '{print $2}')
-        echo "$pkg: $version"
-    else
-        echo "$pkg not installed"
-        echo "Running: pip3 install $pkg"
-        if pip3 install "$pkg" 2>&1 | grep -q "externally-managed"; then
-            echo "Externally managed environment detected, retrying with --break-system-packages"
-            pip3 install "$pkg" --break-system-packages
-        fi
-    fi
-done
-
-[[ $(uname) == "Linux" ]] && IDEVICE_INFO_LIB="env LD_LIBRARY_PATH=./lib"
+[[ $(uname) == "Linux" ]] && IDEVICE_INFO_LIB="env LD_LIBRARY_PATH=lib"
 IDEVICE_INFO=$($IDEVICE_INFO_LIB ./bin/ideviceinfo 2>&1) || true
 IDEVICE_STATUS=$?
 if [[ $IDEVICE_STATUS -eq 0 && "$IDEVICE_INFO" != *"No device found!"* && "$IDEVICE_INFO" != *"ERROR:"* ]]; then
@@ -3200,7 +3184,7 @@ if [[ $VERSION == 14.0 ]] && [[ $BUILD != 18A373 ]] && [[ $IDENTIFIER == iPhone1
     fi
     ( cd work && ../bin/pzb -g Firmware/dfu/$IBSS $ipsw_url )
     ./bin/img4 -i work/$IBSS -o work/iBSS.raw -k $IBSS_KEY
-    ./bin/iBoot64Patcher2 work/iBSS.raw boot/$IDENTIFIER/iBSS.patch 
+    ./bin/iBoot64Patcher2 work/iBSS.raw boot/$IDENTIFIER/iBSS.patch
     ./bin/iBoot64Patcher2 work/iBSS.raw work/iBSS.patchboot -b "-v"
     ./bin/iBootpatch2 work/iBSS.patchboot boot/$IDENTIFIER/$VERSION/iBSS.boot
     ./bin/img4 -i boot/$IDENTIFIER/iBSS.patch -o tmp2/Firmware/dfu/$IBEC -A -T ibec
@@ -3214,14 +3198,14 @@ elif [[ $VERSION == 14.5* || $VERSION == 14.6* || $VERSION == 14.7* || $VERSION 
     fi
     ( cd work && ../bin/pzb -g Firmware/dfu/$IBSS $ipsw_url )
     ./bin/img4 -i work/$IBSS -o work/iBSS.raw -k $IBSS_KEY
-    ./bin/iBoot64Patcher2 work/iBSS.raw boot/$IDENTIFIER/iBSS.patch 
+    ./bin/iBoot64Patcher2 work/iBSS.raw boot/$IDENTIFIER/iBSS.patch
     ./bin/iBoot64Patcher2 work/iBSS.raw work/iBSS.patchboot -b "-v"
     ./bin/iBootpatch2 work/iBSS.patchboot boot/$IDENTIFIER/$VERSION/iBSS.boot
     ./bin/img4 -i boot/$IDENTIFIER/iBSS.patch -o tmp2/Firmware/dfu/$IBEC -A -T ibec
 elif [[ $VERSION == 15.* ]]; then
     ./bin/img4 -i tmp1/Firmware/dfu/$IBSS -o work/iBSS.raw -k $IBSS_KEY
     ./bin/iBootPatch work/iBSS.raw boot/$IDENTIFIER/iBSS.patch
-    ./bin/iBootPatch -v -b "-v" work/iBSS.raw work/iBSS.patchboot 
+    ./bin/iBootPatch -v -b "-v" work/iBSS.raw work/iBSS.patchboot
     ./bin/iBootpatch2 work/iBSS.patchboot boot/$IDENTIFIER/$VERSION/iBSS.boot
     ./bin/img4 -i boot/$IDENTIFIER/iBSS.patch -o tmp2/Firmware/dfu/$IBEC -A -T ibec
 elif [[ $VERSION == 14.* ]] && [[ $IDENTIFIER == iPhone12* ]]; then
@@ -3273,6 +3257,21 @@ elif [[ $IDENTIFIER == iPhone11,6 || $IDENTIFIER == iPad11,3 ]]; then
 elif [[ $IDENTIFIER == iPad11,4 ]]; then
     IDENTITY="3"
 fi
+chmod 644 tmp2/BuildManifest.plist
+# env IDENTITY="$IDENTITY" python3 <<'PY'
+# import os
+# import plistlib
+#
+# with open("tmp2/BuildManifest.plist", "rb") as f:
+#     plist = plistlib.load(f)
+#
+# identity = int(os.environ["IDENTITY"])
+#
+# del plist["BuildIdentities"][identity]["Manifest"]["Cryptex1,SystemOS"]
+#
+# with open("tmp2/BuildManifest.plist", "wb") as f:
+#     plistlib.dump(plist, f)
+# PY
 cp -v tmp1/Firmware/AOP/$AOP14 tmp2/Firmware/AOP/$AOP
 cp -v tmp1/Firmware/agx/$GFX tmp2/Firmware/agx/$GFX
 cp -v tmp1/Firmware/ane/$ANE tmp2/Firmware/ane/$ANE
@@ -3292,8 +3291,8 @@ if [[ $VERSION == 13.* ]]; then
 else
     cp -v tmp1/Firmware/$IOFW tmp2/Firmware/$IOFW
     cp -v tmp1/Firmware/ave/$AVE tmp2/Firmware/ave/$AVE
-    cp -v tmp1/Firmware/$fs_dmg_name.root_hash tmp2/Firmware/$fs_dmg_18_name.root_hash 
-    cp -v tmp1/Firmware/$fs_dmg_name.mtree tmp2/Firmware/$fs_dmg_18_name.mtree 
+    cp -v tmp1/Firmware/$fs_dmg_name.root_hash tmp2/Firmware/$fs_dmg_18_name.root_hash
+    cp -v tmp1/Firmware/$fs_dmg_name.mtree tmp2/Firmware/$fs_dmg_18_name.mtree
 fi
 cp -v tmp1/Firmware/$MTFW tmp2/Firmware/$MTFW # copy MTFW for target iOS
 if [[ ($IDENTIFIER == iPhone12*) &&
@@ -3305,7 +3304,7 @@ if [[ $IDENTIFIER == iPhone12* ]]; then
     cp -v tmp1/Firmware/pmp/$PMP tmp2/Firmware/pmp/$PMP
 fi
 cp -v $fs_dmg $fs_dmg_18 # replace rootfs in the IPSW
-cp -v tmp1/Firmware/$fs_dmg_name.trustcache tmp2/Firmware/$fs_dmg_18_name.trustcache 
+cp -v tmp1/Firmware/$fs_dmg_name.trustcache tmp2/Firmware/$fs_dmg_18_name.trustcache
 cp -v tmp1/Firmware/$ramdisk_dmg_name.trustcache tmp2/Firmware/$ramdisk_dmg_name_18.trustcache
 ./bin/img4 -i tmp1/$KERNEL -o work/kernel.raw
 if [[ $VERSION == 14.* ]]; then
@@ -3323,14 +3322,14 @@ rm -rf tmp2/$KERNEL
 ./bin/asr64_patcher work/asr work/asr_patched
 ./bin/ldid -e work/asr > work/ents.plist
 ./bin/ldid -Swork/ents.plist work/asr_patched
-./bin/hfsplus work/ramdisk.raw rm usr/sbin/asr 
+./bin/hfsplus work/ramdisk.raw rm usr/sbin/asr
 ./bin/hfsplus work/ramdisk.raw add work/asr_patched usr/sbin/asr
 ./bin/hfsplus work/ramdisk.raw chmod 100755 usr/sbin/asr
 if [[ $VERSION == 14.* || $VERSION == 15.* ]]; then
     ./bin/hfsplus work/ramdisk.raw extract usr/lib/libimg4.dylib work/libimg4.dylib
     ./bin/libimg4_patcher work/libimg4.dylib work/libimg4.patch
     ./bin/ldid -Swork/ents.plist work/libimg4.patch
-    ./bin/hfsplus work/ramdisk.raw rm usr/lib/libimg4.dylib 
+    ./bin/hfsplus work/ramdisk.raw rm usr/lib/libimg4.dylib
     ./bin/hfsplus work/ramdisk.raw add work/libimg4.patch usr/lib/libimg4.dylib
     ./bin/hfsplus work/ramdisk.raw chmod 100755 usr/lib/libimg4.dylib
 fi
@@ -3417,11 +3416,11 @@ echo "Sending iBSS"
 if [[ $IDENTIFIER == iPhone11* || $IDENTIFIER == iPhone12* || $IDENTIFIER == iPad11* ]]; then
     curl -L -o bin/liter8ctl https://github.com/ahmadkamal09999-tech/usbliter8/raw/refs/heads/main/usbliter8ctl
     if [[ $dist == 1 || $dist == 2 || $dist == 5 ]]; then
-        python3 bin/liter8ctl boot $bootdir/iBSS.boot || true
+        ./bin/primepwn $bootdir/iBSS.boot || true
         echo "If you see the error: No such device (it may have been disconnected)"
         echo "This error is normal on Linux as long as the Device actually starts booting after iBSS is sent."
     else
-        python3 bin/liter8ctl boot $bootdir/iBSS.boot
+        ./bin/primepwn $bootdir/iBSS.boot
     fi
     echo "Device should now boot"
     exit 0
@@ -3907,15 +3906,15 @@ pwn_device
 det_rsep_flag
 curl -L -o bin/liter8ctl https://github.com/ahmadkamal09999-tech/usbliter8/raw/refs/heads/main/usbliter8ctl
 if [[ $dist == 1 || $dist == 2 || $dist == 5 ]]; then
-    python3 bin/liter8ctl boot boot/$IDENTIFIER/iBSS.patch || true
+    ./bin/primepwn boot/$IDENTIFIER/iBSS.patch || true
     echo "If you see the error: No such device (it may have been disconnected)"
     echo "This error is normal on Linux as long as the Device enters iBSS recovery mode (screen Should remain blank but be detected as Recovery mode device)."
 elif [[ $macos_ver == 27.* || $macos_ver == 26.* || $macos_ver == 15.* || $macos_ver == 14.* || $macos_ver == 13.* || $macos_ver == 12.* ]]; then
-    python3 bin/liter8ctl boot boot/$IDENTIFIER/iBSS.patch || true
+    ./bin/primepwn boot/$IDENTIFIER/iBSS.patch || true
     echo "usbliter8ctl may error out."
     echo "The error may be normal as long as the Device enters iBSS recovery mode (screen Should remain blank but be detected as Recovery mode device)."
 else
-    python3 bin/liter8ctl boot boot/$IDENTIFIER/iBSS.patch 
+    ./bin/primepwn boot/$IDENTIFIER/iBSS.patch
 fi
 sleep 6
 echo "Checking if device is in Recovery mode"
@@ -3931,11 +3930,11 @@ ECID=$(./bin/irecovery -q 2>/dev/null | grep "^ECID:" | cut -d ':' -f2 | xargs) 
 mkdir -p boot
 echo "$VERSION" > boot/$ECID.txt
 if [[ $IDENTIFIER == iPhone12,8 ]]; then
-    env LD_LIBRARY_PATH="lib" ./bin/idevicerestore -ey $restoredir/custom.ipsw
+    env LD_LIBRARY_PATH=lib ./bin/idevicerestore -ey $restoredir/custom.ipsw
     echo "Restore has finished! Read above if there are any errors"
     exit 0
 elif [[ $VERSION == 16.* || $VERSION == 17.* ]] && [[ $IDENTIFIER != iPhone12,8 ]]; then
-    env LD_LIBRARY_PATH="lib" ./bin/idevicerestore -ey $restoredir/custom.ipsw
+    env LD_LIBRARY_PATH=lib ./bin/idevicerestore -ey $restoredir/custom.ipsw
     echo "Restore has finished! Read above if there are any errors"
     exit 0
 fi
@@ -3951,7 +3950,7 @@ if [[ -z "$SHSH_PATH" ]]; then
 fi
 while true; do
     set +e
-    ./futurerestore/futurerestore -t $SHSH_PATH $rsep_flag --latest-sep $updatebb_flag $restoredir/custom.ipsw
+    ./futurerestore/futurerestore -t $SHSH_PATH $rsep_flag --latest-sep $updatebb_flag --skip-cryptex $restoredir/custom.ipsw
     EXIT_CODE=$?
     set -e
     if [[ $EXIT_CODE -eq 139 ]]; then
@@ -4391,7 +4390,7 @@ sleep 5
 ECID=$(./bin/irecovery -q 2>/dev/null | grep "^ECID:" | cut -d ':' -f2 | xargs) || true
 mkdir -p boot
 echo "$VERSION" > boot/$ECID.txt
-env LD_LIBRARY_PATH="lib" ./bin/idevicerestore -ey $restoredir/$ipsw_custom
+env LD_LIBRARY_PATH=lib ./bin/idevicerestore -ey $restoredir/$ipsw_custom
 
 }
 
@@ -5162,7 +5161,7 @@ else
 fi
 pwn_device
 curl -L -o bin/liter8ctl https://github.com/ahmadkamal09999-tech/usbliter8/raw/refs/heads/main/usbliter8ctl
-python3 bin/liter8ctl boot $sshrd_path/iBSS.patch || true
+./bin/primepwn $sshrd_path/iBSS.patch || true
 echo "usbliter8ctl may error out."
 echo "The error may be normal as long as the Device enters iBSS recovery mode (screen Should remain blank but be detected as Recovery mode device)."
 sleep 6
