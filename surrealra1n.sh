@@ -298,7 +298,7 @@ pick_file() {
 echo "Checking for required dependencies..."
 
 if [[ $dist == 1 ]]; then
-    DEPENDENCIES=(libusb-1.0-0-dev libusbmuxd-tools libimobiledevice-utils usbmuxd zenity git curl make gcc python3-pip python3-usb jq bc aria2)
+    DEPENDENCIES=(libusb-1.0-0-dev libusbmuxd-tools libimobiledevice-utils usbmuxd zenity git curl make gcc python3 jq bc aria2)
     MISSING_PACKAGES=()
 
     for pkg in "${DEPENDENCIES[@]}"; do
@@ -316,7 +316,7 @@ if [[ $dist == 1 ]]; then
         echo "All dependencies are installed." 
     fi
 elif [[ $dist == 2 ]]; then
-    DEPENDENCIES=(libusb libusbmuxd libimobiledevice usbmuxd zenity git curl make gcc base-devel python-pip jq bc aria2)
+    DEPENDENCIES=(libusb libusbmuxd libimobiledevice usbmuxd zenity git curl make gcc base-devel python jq bc aria2)
     MISSING_PACKAGES=()
 
 
@@ -334,7 +334,7 @@ elif [[ $dist == 2 ]]; then
         echo "All dependencies are already installed."
     fi
 elif [[ $dist == 5 ]]; then
-    DEPENDENCIES=(libusb1-devel usbmuxd libimobiledevice-utils zenity git curl make gcc python3-pip python3-pyusb jq bc aria2)
+    DEPENDENCIES=(libusb1-devel usbmuxd libimobiledevice-utils zenity git curl make gcc python3 jq bc aria2)
     MISSING_PACKAGES=()
 
     for pkg in "${DEPENDENCIES[@]}"; do
@@ -1083,23 +1083,6 @@ else
     rm -rf "futurerestore-Linux-x86_64-v2.0.0-Build_329-RELEASE" 
     cd ..
 fi
-
-echo "Checking for dependencies that are required for usbliter8ctl, assuming Python3 is on your system"
-# Check required packages
-PACKAGES=("pyusb" "usb")
-for pkg in "${PACKAGES[@]}"; do
-    if pip3 show "$pkg" &>/dev/null; then
-        version=$(pip3 show "$pkg" | grep Version | awk '{print $2}')
-        echo "$pkg: $version"
-    else
-        echo "$pkg not installed"
-        echo "Running: pip3 install $pkg"
-        if pip3 install "$pkg" 2>&1 | grep -q "externally-managed"; then
-            echo "Externally managed environment detected, retrying with --break-system-packages"
-            pip3 install "$pkg" --break-system-packages
-        fi
-    fi
-done
 
 IDEVICE_INFO=$(ideviceinfo 2>&1) || true
 IDEVICE_STATUS=$?
@@ -3388,13 +3371,10 @@ sleep 5
 
 echo "Sending iBSS"
 if [[ $IDENTIFIER == iPhone11* || $IDENTIFIER == iPhone12* || $IDENTIFIER == iPad11* ]]; then
-    curl -L -o bin/liter8ctl https://github.com/ahmadkamal09999-tech/usbliter8/raw/refs/heads/main/usbliter8ctl
     if [[ $dist == 1 || $dist == 2 || $dist == 5 ]]; then
-        python3 bin/liter8ctl boot $bootdir/iBSS.boot || true
-        echo "If you see the error: No such device (it may have been disconnected)"
-        echo "This error is normal on Linux as long as the Device actually starts booting after iBSS is sent."
+        ./bin/primepwn $bootdir/iBSS.boot
     else
-        python3 bin/liter8ctl boot $bootdir/iBSS.boot
+        ./bin/primepwn $bootdir/iBSS.boot
     fi
     echo "Device should now boot"
     exit 0
@@ -3879,17 +3859,12 @@ else
 fi
 pwn_device
 det_rsep_flag
-curl -L -o bin/liter8ctl https://github.com/ahmadkamal09999-tech/usbliter8/raw/refs/heads/main/usbliter8ctl
 if [[ $dist == 1 || $dist == 2 || $dist == 5 ]]; then
-    python3 bin/liter8ctl boot boot/$IDENTIFIER/iBSS.patch || true
-    echo "If you see the error: No such device (it may have been disconnected)"
-    echo "This error is normal on Linux as long as the Device enters iBSS recovery mode (screen Should remain blank but be detected as Recovery mode device)."
+    ./bin/primepwn boot/$IDENTIFIER/iBSS.patch
 elif [[ $macos_ver == 27.* || $macos_ver == 26.* || $macos_ver == 15.* || $macos_ver == 14.* || $macos_ver == 13.* || $macos_ver == 12.* ]]; then
-    python3 bin/liter8ctl boot boot/$IDENTIFIER/iBSS.patch || true
-    echo "usbliter8ctl may error out."
-    echo "The error may be normal as long as the Device enters iBSS recovery mode (screen Should remain blank but be detected as Recovery mode device)."
+    ./bin/primepwn boot/$IDENTIFIER/iBSS.patch
 else
-    python3 bin/liter8ctl boot boot/$IDENTIFIER/iBSS.patch 
+    ./bin/primepwn boot/$IDENTIFIER/iBSS.patch
 fi
 sleep 6
 echo "Checking if device is in Recovery mode"
@@ -5135,10 +5110,7 @@ else
     dfu_helper
 fi
 pwn_device
-curl -L -o bin/liter8ctl https://github.com/ahmadkamal09999-tech/usbliter8/raw/refs/heads/main/usbliter8ctl
-python3 bin/liter8ctl boot $sshrd_path/iBSS.patch || true
-echo "usbliter8ctl may error out."
-echo "The error may be normal as long as the Device enters iBSS recovery mode (screen Should remain blank but be detected as Recovery mode device)."
+./bin/primepwn $sshrd_path/iBSS.patch
 sleep 6
 echo "Checking if device is in Recovery mode"
 MODE=$(./bin/irecovery -q 2>/dev/null | grep "^MODE:" | cut -d ':' -f2 | xargs) || true
