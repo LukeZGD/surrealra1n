@@ -852,7 +852,7 @@ elif [[ $dist == 3 ]]; then
     # download activate.sh and backup.sh from hiylx's eclipsera1n, for backing up and restoring iOS 16+ activation files on 14.0-15.7(.2)
     curl -L -o activate.sh https://github.com/hiylx/eclipsera1n/raw/refs/heads/main/activate.sh
     curl -L -o backup.sh https://github.com/hiylx/eclipsera1n/raw/refs/heads/main/backup.sh
-    curl -L -o futurerestore/futurerestore.zip https://github.com/LukeeGD/futurerestore/releases/download/latest/futurerestore-macOS-RELEASE-main.zip
+    curl -L -o futurerestore/futurerestore.zip https://github.com/LukeZGD/futurerestore/releases/download/latest/futurerestore-macOS-RELEASE.zip
     # fetch idevicerestore for 7.0-9.3.5 restores 
     curl -L -o bin/idevicerestore https://github.com/NyanSatan/SundanceInH2A/raw/refs/heads/master/executables/Darwin/idevicerestore
     # libs
@@ -861,13 +861,13 @@ elif [[ $dist == 3 ]]; then
 
     cd futurerestore || exit
     unzip -o futurerestore.zip
-    tar -xf futurerestore-macOS-v2.0.0-Build_329-RELEASE.tar.xz
-    cp futurerestore-macOS-v2.0.0-Build_329-RELEASE/* . || true
+    tar -xf futurerestore-macOS-v2.0.0-Build_*-RELEASE.tar.xz
+    cp futurerestore-macOS-v2.0.0-Build_*-RELEASE/* . || true
     chmod +x futurerestore
     rm -rf *.tar.xz
     rm -rf *.sh
     rm -rf *.zip
-    rm -rf "futurerestore-macOS-v2.0.0-Build_329-RELEASE" 
+    rm -rf "futurerestore-macOS-v2.0.0-Build_"*"-RELEASE"
     cd ..
     xattr -c bin/*
     xattr -c futurerestore/futurerestore
@@ -1058,7 +1058,7 @@ else
     # download activate.sh and backup.sh from hiylx's eclipsera1n, for backing up and restoring iOS 16+ activation files on 14.0-15.7(.2)
     curl -L -o activate.sh https://github.com/hiylx/eclipsera1n/raw/refs/heads/main/activate.sh
     curl -L -o backup.sh https://github.com/hiylx/eclipsera1n/raw/refs/heads/main/backup.sh
-    download_with_retry "https://github.com/LukeeGD/futurerestore/releases/download/latest/futurerestore-Linux-x86_64-RELEASE-main.zip" "futurerestore/futurerestore.zip" 1024
+    download_with_retry "https://github.com/LukeZGD/futurerestore/releases/download/latest/futurerestore-Linux-x86_64-RELEASE.zip" "futurerestore/futurerestore.zip" 1024
     # fetch idevicerestore for 7.0-9.3.5 restores 
     download_with_retry "https://github.com/LukeZGD/Legacy-iOS-Kit/raw/refs/heads/main/bin/linux/x86_64/idevicerestore" "bin/idevicerestore" 1024
     # libs
@@ -1071,8 +1071,8 @@ else
 
     cd futurerestore || exit
     unzip -o futurerestore.zip
-    tar -xf futurerestore-Linux-x86_64-v2.0.0-Build_329-RELEASE.tar.xz
-    cp futurerestore-Linux-x86_64-v2.0.0-Build_329-RELEASE/* . || true
+    tar -xf futurerestore-Linux-x86_64-v2.0.0-Build_*-RELEASE.tar.xz
+    cp futurerestore-Linux-x86_64-v2.0.0-Build_*-RELEASE/* . || true
     chmod +x linux_fix.sh || true
     sudo ./linux_fix.sh || true
     rm -rf linux_fix.sh || true
@@ -1080,7 +1080,7 @@ else
     rm -rf *.tar.xz || true
     rm -rf *.sh || true
     rm -rf *.zip || true
-    rm -rf "futurerestore-Linux-x86_64-v2.0.0-Build_329-RELEASE" 
+    rm -rf "futurerestore-Linux-x86_64-v2.0.0-Build_"*"-RELEASE"
     cd ..
 fi
 
